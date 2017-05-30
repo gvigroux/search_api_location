@@ -13,6 +13,7 @@ use Drupal\views\ViewExecutable;
  * Implements hook_views_data_alter().
  */
 function search_api_location_views_views_data_alter(&$data) {
+
   /** @var \Drupal\search_api\IndexInterface $index */
   foreach (Index::loadMultiple() as $index) {
     $table = &$data['search_api_index_' . $index->id()];
@@ -50,7 +51,9 @@ function search_api_location_views_views_post_execute(ViewExecutable $view) {
     foreach ($query->getIndex()->getFields() as $field_id => $field) {
       if ($field->getType() == 'location') {
         foreach ($view->result as &$result) {
-          $result->{$field->getCombinedPropertyPath() . '__distance'} = $result->{$field->getCombinedPropertyPath() . '__distance'}[0];
+            // This line cause an error because "$field->getCombinedPropertyPath() . '__distance'" do not exists
+            // Why is this for?
+          //$result->{$field->getCombinedPropertyPath() . '__distance'} = $result->{$field->getCombinedPropertyPath() . '__distance'}[0];
         }
       }
     }
