@@ -54,21 +54,31 @@ class SearchApiFilterLocation extends FilterPluginBase {
     );
   }
 
+  
+  /**
+   * Display the filter on the administrative summary
+   */
+  public function adminSummary() { 	
+  	$pluginId= $this->options['plugin'];
+  	return $this->operator . ' ' . $pluginId;
+  }
+  
   /**
    * {@inheritdoc}
    */
   protected function defineOptions() {
-    $options = parent::defineOptions();
-
-    $options['plugin']['default'] = '';
+    
+    $options = [
+    		'plugin' => ['default' => ''],
+    		'radius_type' => ['default' => 'select'],
+    		'radius_options' => ['default' => ""],
+    		'radius_units' => ['default' => 1],
+    ] + parent::defineOptions();
+    
     foreach ($this->locationInputManager->getDefinitions() as $id => $plugin) {
-      $options["plugin-$id"]['default'] = array();
+    	$options["plugin_" . $id] = ['default' => array()];
     }
-
-    $options['radius_type']['default'] = 'select';
-    $options['radius_options']['default'] = "- -\n5 5 km\n10 10 km\n16.09 10 mi";
-    $options['radius_units']['default'] = '1';
-
+    
     return $options;
   }
 
@@ -83,7 +93,8 @@ class SearchApiFilterLocation extends FilterPluginBase {
    * {@inheritdoc}
    */
   public function buildExtraOptionsForm(&$form, FormStateInterface $form_state) {
-
+  	
+  	// Create a dropdown with all the plugins
     $form['plugin'] = array(
       '#type' => 'select',
       '#title' => $this->t('Input method'),
@@ -93,9 +104,13 @@ class SearchApiFilterLocation extends FilterPluginBase {
       '#required' => TRUE,
     );
 
+
     foreach ($this->locationInputManager->getDefinitions() as $id => $plugin) {
-      $plugin = $this->locationInputManager->createInstance($id, $this->options['plugin-' . $id]);
-      $form["plugin-$id"] = [
+    	
+    	$plugin = $this->locationInputManager->createInstance($id, $this->options['plugin_' . $id]);
+    	
+    	// Display the description of the selected plugin
+    	$form["plugin_" .$id] = [
         '#type' => 'fieldset',
         '#title' => $plugin->getDescription(),
         '#tree' => TRUE,
@@ -105,8 +120,15 @@ class SearchApiFilterLocation extends FilterPluginBase {
           ],
         ],
       ];
-      $form["plugin-$id"] += $plugin->buildConfigurationForm($form["plugin-$id"], $form_state);
+    	
+    	// Add plugin specific fields
+      	$form["plugin_" . $id] += $plugin->buildConfigurationForm($form["plugin_" . $id], $form_state);
+      	
+      	
+      	//dpm($form["plugin_" . $id]['radius_options']); // Working
     }
+    
+    
 
     return $form;
   }
@@ -115,14 +137,21 @@ class SearchApiFilterLocation extends FilterPluginBase {
    * {@inheritdoc}
    */
   public function submitExtraOptionsForm($form, FormStateInterface $form_state) {
-
-    $plugin_id = $form_state->getValues()['options']['plugin'];
-
-    /** @var \Drupal\search_api_location\LocationInput\LocationInputInterface $plugin */
-    $plugin = $this->locationInputManager->createInstance($plugin_id, $this->options['plugin-' . $plugin_id]);
-    $processor_form_state = SubformState::createForSubform($form['plugin-' . $plugin_id], $form, $form_state);
-    $plugin->submitConfigurationForm($form['plugin-' . $plugin_id], $processor_form_state);
-
+  	
+  	$pluginId= $form_state->getValue(array('options','plugin'));
+  	
+  	//dpm($form_state->getValue(array('options', 'plugin_raw', 'radius_options')));
+  
+    
+  	//$processor_form_state = SubformState::createForSubform($form['plugin_' . $pluginId], $form, $form_state);
+  	//dpm(array_keys($form_state->getValues()));
+  	//dpm(array_keys($processor_form_state->getValues()));
+  	
+  	/** @var \Drupal\search_api_location\LocationInput\LocationInputInterface $plugin */
+  	$plugin = $this->locationInputManager->createInstance($pluginId, $this->options['plugin_' . $pluginId]);
+  	//$plugin->submitConfigurationForm($form['plugin_' . $pluginId], $processor_form_state);
+  	$plugin->submitConfigurationForm($form['plugin_' . $pluginId], $form_state);
+  	
     parent::submitExtraOptionsForm($form, $form_state);
   }
 
@@ -130,6 +159,7 @@ class SearchApiFilterLocation extends FilterPluginBase {
    * {@inheritdoc}
    */
   protected function operatorForm(&$form, FormStateInterface $form_state) {
+  	\Drupal::logger('SearchApiFilterLocation')->notice("valueForm");
     $form['operator'] = [
       '#type' => 'select',
       '#title' => $this->t('Location'),
@@ -146,11 +176,17 @@ class SearchApiFilterLocation extends FilterPluginBase {
    * {@inheritdoc}
    */
   protected function valueForm(&$form, FormStateInterface $form_state) {
-    $plugin_id = $this->options['plugin'];
+  	\Drupal::logger('SearchApiFilterLocation')->notice("valueForm");
+  	
+    $pluginId = $this->options['plugin'];
+    
+    if( strlen($pluginId) <= 0 ) {
+    	\Drupal::logger('search_api_location_views')->notice("No location plugin set in 'valueForm'. it will works when set.");
+    	return;
+    }
 
     /** @var \Drupal\search_api_location\LocationInput\LocationInputInterface $plugin */
-    $plugin = $this->locationInputManager->createInstance($plugin_id, $this->options['plugin-' . $plugin_id]);
-
+    $plugin = $this->locationInputManager->createInstance($pluginId, $this->options['plugin_' . $pluginId]);
     $form = $plugin->getForm($form, $form_state, $this->options);
   }
 
@@ -158,10 +194,17 @@ class SearchApiFilterLocation extends FilterPluginBase {
    * {@inheritdoc}
    */
   public function query() {
-    $plugin_id = $this->options['plugin'];
+  	
+  	$pluginId= $this->options['plugin'];
+    
+    if( strlen($pluginId) <= 0 ) {
+    	//\Drupal::logger('search_api_location_views')->notice('No location plugin set. it will works when set?');
+    	return;
+    }
+    
     /** @var \Drupal\search_api_location\LocationInput\LocationInputInterface $plugin */
-    $plugin = $this->locationInputManager->createInstance($this->options['plugin'], $this->options['plugin-' . $plugin_id]);
-
+    $plugin = $this->locationInputManager->createInstance($this->options['plugin'], $this->options['plugin_' . $pluginId]);
+    
     if (!$plugin->hasInput($this->value, $this->options)) {
       return;
     }

@@ -1,0 +1,60 @@
+views.filter.search_api_location:
+  type: views_filter
+  label: 'Search API Location'
+  mapping:
+    plugin:
+      type: string
+      label: 'Location input plugin name'
+    plugin_geocode:
+      type: mapping 
+      label: 'geocode input plugin'
+      mapping:
+        plugins:
+          type: mapping
+          label: 'List of geocode plugins'
+    plugin_geocode_map:
+      type: mapping
+      label: 'geocode map plugin'
+      mapping:
+        radius_border_color:
+          type: string
+          label: 'Map Radius Border Color'
+        radius_border_weight:
+          type: string
+          label: 'Map Radius Border Weight'
+        radius_background_color:
+          type: string
+          label: 'Map Radius Background Color'
+        radius_background_transparency:
+          type: string
+          label: 'Map Radius Background Transparency'
+        marker_image:
+          type: string
+          label: 'Map Radius marker image'
+    plugin_raw:
+      type: mapping
+      label: 'raw input plugin'
+    radius_type:
+      type: string
+      label: 'Radius type'
+    radius_options:
+      type: string
+      label: 'Radius options'
+    radius_units:
+      type: views.filter_value.numeric
+      label: 'Radius units'
+    value:
+      type: mapping
+      label: 'Values - it depends on the plugins!!!'
+      mapping:
+        distance:
+          type: mapping
+          label: 'distance'
+          mapping:
+            from:
+              type: string
+              label: 'distance from'
+              
+
+views.filter_value.search_api_location:
+  type: string

@@ -29,6 +29,20 @@ class Map extends LocationInputPluginBase {
   public function getParsedInput($input) {
     return $input['lat'] . ',' . $input['lng'];
   }
+  
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+  	return array(
+  			'radius_border_color' => '',
+  			'radius_border_weight'	=> 1,
+  			'radius_background_color'	=> '',
+  			'radius_background_transparency'	=> 0.5,
+  			'marker_image'	=> '',
+  	);
+  }
+  
 
   /**
    * {@inheritdoc}

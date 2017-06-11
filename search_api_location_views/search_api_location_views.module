@@ -25,6 +25,7 @@ function search_api_location_views_views_data_alter(&$data) {
         $table[$field_id]['filter']['id'] = 'search_api_location';
         $table[$field_id]['filter']['help'] = $field->getDescription();
 
+		/*
         $location_field = $field_id . '__distance';
         $table[$location_field]['group'] = $table[$field_id]['group'];
         $table[$location_field]['group'] = t('@datasource datasource', array('@datasource' => $field->getDatasource()->label()));
@@ -35,6 +36,7 @@ function search_api_location_views_views_data_alter(&$data) {
         $table[$location_field]['field']['click sortable'] = TRUE;
         $table[$location_field]['field']['real field'] = $table[$field_id]['field']['real field'] . '__distance';
         $table[$location_field]['sort']['id'] = 'search_api';
+        */
       }
     }
   }

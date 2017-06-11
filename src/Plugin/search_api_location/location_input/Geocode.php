@@ -51,7 +51,7 @@ class Geocode extends LocationInputPluginBase {
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
-    return array(
+  	return parent::defaultConfiguration() + array(
       'plugins' => array(),
     );
   }
@@ -75,19 +75,19 @@ class Geocode extends LocationInputPluginBase {
       '#caption' => $this->t('Select the Geocoder plugins to use, you can reorder them. The first one to return a valid value will be used.'),
     ];
 
-    foreach ($geocoderpluginmanager->getPluginsAsOptions() as $plugin_id => $plugin_name) {
-      $form['plugins'][$plugin_id] = [
+    foreach ($geocoderpluginmanager->getPluginsAsOptions() as $pluginId => $pluginName) {
+    	$form['plugins'][$pluginId] = [
         'checked' => [
           '#type' => 'checkbox',
-          '#title' => $plugin_name,
-          '#default_value' => $this->configuration['plugins'][$plugin_id]['checked'],
+        		'#title' => $pluginName,
+        		//'#default_value' => $this->configuration['plugins'][$pluginId]['checked'],
         ],
         'weight' => array(
-          '#type' => 'weight',
-          '#title' => $this->t('Weight for @title', ['@title' => $plugin_name]),
-          '#title_display' => 'invisible',
-          '#attributes' => ['class' => ['plugins-order-weight']],
-          '#default_value' => $this->configuration['plugins'][$plugin_id]['weight'],
+          		'#type' => 'weight',
+        		'#title' => $this->t('Weight for @title', ['@title' => $pluginName]),
+          		'#title_display' => 'invisible',
+          		'#attributes' => ['class' => ['plugins-order-weight']],
+        		//'#default_value' => $this->configuration['plugins'][$pluginId]['weight'],
         ),
         '#attributes' => ['class' => ['draggable']],
       ];
